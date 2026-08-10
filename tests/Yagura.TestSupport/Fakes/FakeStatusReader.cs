@@ -34,7 +34,8 @@ public sealed class FakeStatusReader : IYaguraSystemStatusReader
         SpoolDegraded: SpoolDegraded,
         Health: Health,
         RetentionDays: RetentionDays,
-        Listeners: Listeners);
+        Listeners: Listeners,
+        DiagnosticCounters: DiagnosticCounters);
 
     public List<YaguraFlowControlRejectionReading> FlowControlRejections { get; init; } = [];
 
@@ -42,6 +43,9 @@ public sealed class FakeStatusReader : IYaguraSystemStatusReader
         FlowControlRejections.Take(maxCount).ToList();
 
     public List<YaguraSourceSilenceReading> SourceSilenceEntries { get; init; } = [];
+
+    /// <summary>診断用カウンタ（Issue #509。プロセス内累計）。</summary>
+    public List<YaguraCounterReading> DiagnosticCounters { get; init; } = [];
 
     public IReadOnlyList<YaguraSourceSilenceReading> ReadSourceSilenceEntries() => SourceSilenceEntries;
 }

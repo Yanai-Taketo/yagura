@@ -55,7 +55,12 @@ public sealed partial class SqlServerLogStore : ILogStore, IBulkLogReader, IAsyn
     /// （KS/WS を明示し、大文字小文字以外を区別する側に固定することで「折り畳むのは大文字小文字のみ」
     /// という DB-6 の規則を過不足なく実装する）。
     /// </summary>
-    internal const string SearchCollation = "Latin1_General_100_CI_AS_KS_WS_SC";
+    /// <remarks>
+    /// <b>public にしている理由</b>: 昇格ウィザードの接続検証（<c>SqlServerConnectionValidator</c>）が
+    /// **切替の前に**この照合順序の実在を確認するため（Issue #515）。値を二重定義すると
+    /// 片方だけ変わる事故が起きるので、provider 側の定義を唯一の正とする。
+    /// </remarks>
+    public const string SearchCollation = "Latin1_General_100_CI_AS_KS_WS_SC";
 
     // SERVERPROPERTY('EngineEdition') の値（Microsoft Learn "SERVERPROPERTY (Transact-SQL)" の
     // Edition テーブル）: "4 = Express (For Express, Express with Tools, and

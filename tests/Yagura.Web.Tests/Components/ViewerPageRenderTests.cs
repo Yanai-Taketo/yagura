@@ -556,6 +556,38 @@ public sealed class ViewerPageRenderTests
     }
 
     [Fact]
+    public async Task SystemStatus_ShowsDiagnosticCountersInASeparateSectionWithResetNotice()
+    {
+        // 診断用カウンタ（Issue #509）は損失系と**別の区画**に出し、再起動でリセットされる旨を
+        // 明示する。同じ表へ混ぜると「累計」の意味が 2 通りになり、再起動後にゼロへ戻った値を
+        // 「損失が消えた」と読ませる。
+        var store = new FakeLogStore();
+        var reader = new FakeStatusReader
+        {
+            Counters = [new YaguraCounterReading("yagura.ingestion.persistence.failed", 0, IsLoss: true)],
+            DiagnosticCounters =
+            [
+                new YaguraCounterReading("yagura.ingestion.tcp.tls_handshake_failure", 5, IsLoss: false),
+                new YaguraCounterReading("yagura.ingestion.udp.receive_error", 0, IsLoss: false),
+            ],
+        };
+
+        var html = await RenderPageAsync<SystemStatus>(store, reader);
+
+        // ①別区画として出る（見出しと位置づけの説明）。
+        Assert.Contains(UiText.DiagnosticCountersTitle, html, StringComparison.Ordinal);
+        Assert.Contains(UiText.DiagnosticCountersNote, html, StringComparison.Ordinal);
+
+        // ②再起動でリセットされることを明示する（永続化される累計と混同させない）。
+        Assert.Contains(UiText.DiagnosticCountersSupplement, html, StringComparison.Ordinal);
+
+        // ③平易語が登録されている（「（対応表未登録の項目）」にならない）。
+        Assert.Contains(UiText.CounterTlsHandshakeFailure, html, StringComparison.Ordinal);
+        Assert.Contains(UiText.CounterUdpReceiveError, html, StringComparison.Ordinal);
+        Assert.Contains("yagura.ingestion.tcp.tls_handshake_failure", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SystemStatus_ShowsOutageAndEventHistories()
     {
         var store = new FakeLogStore

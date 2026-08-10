@@ -89,6 +89,12 @@ public sealed record YaguraFlowControlRejectionReading(string SourceAddress, lon
 /// 保持期間の適用値（日数。database.md §3）。不正値フォールバック（削除しない）の場合は <c>null</c>。
 /// </param>
 /// <param name="Listeners">受信リスナの構成（プロトコル・ポート。空状態画面の受信先案内に使う）。</param>
+/// <remarks>
+/// <b><see cref="DiagnosticCounters"/> を <see cref="Counters"/> と分ける理由</b>（Issue #509）:
+/// <see cref="Counters"/> は**再起動をまたいで永続化される累計**である。診断用カウンタは
+/// プロセス内累計のみで、再起動でゼロへ戻る。同じ一覧へ混ぜると「累計」の意味が 2 通りになり、
+/// リセットされた値を「損失が消えた」と読ませてしまう。
+/// </remarks>
 public sealed record YaguraSystemStatusSnapshot(
     DateTimeOffset TakenAt,
     IReadOnlyList<YaguraCounterReading> Counters,
@@ -96,7 +102,8 @@ public sealed record YaguraSystemStatusSnapshot(
     bool SpoolDegraded,
     YaguraHealthReading Health,
     int? RetentionDays,
-    IReadOnlyList<YaguraListenerEndpoint> Listeners);
+    IReadOnlyList<YaguraListenerEndpoint> Listeners,
+    IReadOnlyList<YaguraCounterReading>? DiagnosticCounters = null);
 
 /// <summary>カウンタ累積値の 1 行（計器名 = 開発用語側のキーと、その累積値）。</summary>
 /// <param name="InstrumentName">計器名（architecture.md §4.1.1。例: <c>yagura.ingestion.spool.evacuated</c>）。</param>

@@ -148,7 +148,8 @@ public sealed class SystemStatusReader : IYaguraSystemStatusReader
             SpoolDegraded: _spoolDegraded,
             Health: health,
             RetentionDays: _retentionDays,
-            Listeners: _listeners);
+            Listeners: _listeners,
+            DiagnosticCounters: BuildDiagnosticCounterReadings());
     }
 
     /// <inheritdoc />
@@ -290,5 +291,26 @@ public sealed class SystemStatusReader : IYaguraSystemStatusReader
             // 分類漏れの失敗経路を通った接続。その接続の未処理データが無言で失われていた可能性を
             // 含むため損失側に数える（平常時ゼロであり、非ゼロなら原因の特定が必要な状態）。
             new("yagura.ingestion.tcp_connection.faulted", snapshot.TcpConnectionFaulted, IsLoss: true),
+        ];
+
+    /// <summary>
+    /// 診断用カウンタ（プロセス内累計。再起動でリセット）の一覧（Issue #509）。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>損失系と分ける</b>: これらは「ログが失われた」ことを意味しない。TLS ハンドシェイク失敗は
+    /// 接続が確立しなかったという事実であり、送信側が証明書を拒否している状況の検出に使う
+    /// （security.md §6）。したがって <c>IsLoss</c> は false 固定で、表示も別区画にする。
+    /// </para>
+    /// <para>
+    /// <b>なぜ出すのか</b>: TLS が繋がらない調査中に、運用者が状態画面とイベントビューアを
+    /// 往復せずに済むようにするため。以前は TLS 受信画面が「計器に出る」と案内しながら実際には
+    /// 出ておらず、最も助けが要る場面で誤誘導になっていた（2026-08-08 lab で発覚）。
+    /// </para>
+    /// </remarks>
+    private IReadOnlyList<YaguraCounterReading> BuildDiagnosticCounterReadings() =>
+        [
+            new("yagura.ingestion.tcp.tls_handshake_failure", _metrics.TlsHandshakeFailureProcessTotal, IsLoss: false),
+            new("yagura.ingestion.udp.receive_error", _metrics.UdpReceiveErrorProcessTotal, IsLoss: false),
         ];
 }

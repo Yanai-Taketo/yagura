@@ -85,6 +85,29 @@ public static partial class UiText
         "——受信は継続しており、保存できなかった分は一時保管へ退避されます。" +
         "保存先が復旧すると自動的に元の表示に戻ります。";
 
+    // ---- 診断用カウンタの区画（Issue #509） ----
+
+    /// <summary>診断用カウンタ一覧カードの見出し。</summary>
+    public const string DiagnosticCountersTitle = "診断用の計器（再起動でリセットされます）";
+
+    /// <summary>
+    /// 診断用カウンタの位置づけ。**「取りこぼしではない」ことを先に言う**——
+    /// 上のカウンタ一覧と並ぶため、同じ意味だと読まれると誤解が大きい。
+    /// </summary>
+    public const string DiagnosticCountersNote =
+        "接続の確立に失敗した回数など、原因の切り分けに使う値です。ログの取りこぼしを表すものではありません。";
+
+    /// <summary>診断用カウンタの補足（永続化しないことの明示）。</summary>
+    public const string DiagnosticCountersSupplement =
+        "上の「カウンタ一覧」と違い、これらはサービスを再起動すると 0 に戻ります" +
+        "（再起動をまたいだ累計は保持していません）。過去の発生を追う場合はイベントログを参照してください。";
+
+    /// <summary>カウンタ平易語: TLS ハンドシェイク失敗。</summary>
+    public const string CounterTlsHandshakeFailure = "TLS の接続確立に失敗した回数（送信側との不一致）";
+
+    /// <summary>カウンタ平易語: UDP 受信エラー。</summary>
+    public const string CounterUdpReceiveError = "UDP の受信処理でエラーになった回数";
+
     /// <summary>履歴が取得できなかったときの表示（0 件と区別する。Issue #500）。</summary>
     public const string HistoryStorageUnavailable =
         "保存先に接続できていないため取得できませんでした（履歴が無いという意味ではありません）。";
