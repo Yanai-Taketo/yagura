@@ -21,7 +21,7 @@
       最新安定版を確認（プレリリースは除外）。nuspec の依存グループで net10.0 対応を確認済み。
       ライセンス MIT（採用日 2026-07-09）。
     -->
-    <PackageVersion Include="bunit" Version="2.8.6" />
+    <PackageVersion Include="bunit" Version="2.9.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <!--
       SQL Server provider（M5-3。Issue #47）。採用時のライブ検証: nuget.org の flat container index
@@ -74,7 +74,7 @@
       (azuresearch-usnc.nuget.org/query?q=packageid:MudBlazor&prerelease=false) の両方で
       最新安定版を確認。ライセンス MIT（NOTICE 記載は導入 PR で実施。採用日 2026-07-06）。
     -->
-    <PackageVersion Include="MudBlazor" Version="9.7.0" />
+    <PackageVersion Include="MudBlazor" Version="9.8.0" />
     <!--
       SQL Server 接続文字列の DPAPI 暗号化（ADR-0004 決定 5「v0.1: DPAPI 完動」。
       configuration.md §2）。採用時のライブ検証: nuget.org の flat container index
@@ -123,7 +123,7 @@
       初回修正 1.5.0」としているため、1.5.0 未満へ下げてはならない。実 pin は
       tests/Yagura.Web.Tests の直接参照で効かせる（bunit の唯一の利用箇所。採用日 2026-07-18）。
     -->
-    <PackageVersion Include="AngleSharp" Version="1.7.0" />
+    <PackageVersion Include="AngleSharp" Version="1.7.1" />
   </ItemGroup>
 
 </Project>
