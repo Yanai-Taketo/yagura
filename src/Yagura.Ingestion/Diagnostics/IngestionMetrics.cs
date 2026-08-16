@@ -110,6 +110,13 @@ public sealed class IngestionMetrics : IDisposable
     private long _tcpConnectionResyncLimitExceededTotal;
     private long _tcpConnectionFramingTimeoutTotal;
     private long _tcpConnectionFaultedTotal;
+
+    // ---- 診断用カウンタのプロセス内累計（Issue #509） ----
+    //
+    // これらは**再起動をまたぐ永続化の対象ではない**（下の Record* の doc コメント参照）。
+    // 状態画面へは「診断用」の区画で、リセットされる旨を明示して出す。
+    private long _tlsHandshakeFailureTotal;
+    private long _udpReceiveErrorTotal;
     private long _spoolCorruptTailDiscardedTotal;
 
     public IngestionMetrics()
@@ -376,6 +383,7 @@ public sealed class IngestionMetrics : IDisposable
     public void RecordUdpReceiveError()
     {
         _udpReceiveError.Add(1);
+        Interlocked.Increment(ref _udpReceiveErrorTotal);
     }
 
     /// <summary>
@@ -456,6 +464,7 @@ public sealed class IngestionMetrics : IDisposable
     {
         var tagValue = ResolveBoundedSourceTag(sourceAddress ?? "unknown");
         _tlsHandshakeFailure.Add(1, new KeyValuePair<string, object?>("source_address", tagValue));
+        Interlocked.Increment(ref _tlsHandshakeFailureTotal);
     }
 
     /// <summary>
@@ -551,6 +560,20 @@ public sealed class IngestionMetrics : IDisposable
         TcpConnectionFramingTimeout: Interlocked.Read(ref _tcpConnectionFramingTimeoutTotal),
         SpoolCorruptTailDiscardedBytes: Interlocked.Read(ref _spoolCorruptTailDiscardedTotal),
         TcpConnectionFaulted: Interlocked.Read(ref _tcpConnectionFaultedTotal));
+
+    /// <summary>
+    /// 診断用カウンタの**プロセス内**累計（Issue #509）。再起動でリセットされる——
+    /// 損失系カウンタと違い、これらは再起動をまたぐ永続化の対象ではない。
+    /// </summary>
+    /// <remarks>
+    /// 状態画面はこの値を「診断用」の別区画へ出し、リセットされる旨を併記する。
+    /// 損失系と同じ表へ混ぜない——同じ列に並ぶと「累計」の意味が 2 通りになり、
+    /// 再起動後にゼロへ戻った値を「損失が消えた」と読ませる。
+    /// </remarks>
+    public long TlsHandshakeFailureProcessTotal => Interlocked.Read(ref _tlsHandshakeFailureTotal);
+
+    /// <summary>UDP 受信エラーのプロセス内累計（同上。Issue #509）。</summary>
+    public long UdpReceiveErrorProcessTotal => Interlocked.Read(ref _udpReceiveErrorTotal);
 
     /// <summary>
     /// 内部バッファ破棄カウンタの計器そのもの。テストで

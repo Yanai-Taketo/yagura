@@ -75,6 +75,33 @@
     </YaguraCard>
 </div>
 
+@* 診断用カウンタ（Issue #509）。損失系と同じ表へ混ぜない——プロセス内累計であり
+   再起動でリセットされるため、「累計」の意味が 2 通りになるのを避ける。 *@
+@if (_diagnosticCounters.Count > 0)
+{
+    <div class="mb-4">
+        <YaguraCard Title="@UiText.DiagnosticCountersTitle">
+            <div class="mb-2">
+                <YaguraSystemNotice Severity="YaguraNoticeSeverity.Info"
+                                    Message="@UiText.DiagnosticCountersNote"
+                                    Supplement="@UiText.DiagnosticCountersSupplement" />
+            </div>
+            <YaguraTable TItem="YaguraCounterReading" Items="@_diagnosticCounters" RowsPerPage="10">
+                <HeaderContent>
+                    <MudTh>@UiText.CounterColumnName</MudTh>
+                    <MudTh>@UiText.CounterColumnId</MudTh>
+                    <MudTh>@UiText.CounterColumnValue</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="counter">
+                    <MudTd DataLabel="@UiText.CounterColumnName">@DisplayNameOf(counter.InstrumentName)</MudTd>
+                    <MudTd DataLabel="@UiText.CounterColumnId"><span class="yagura-monospace">@counter.InstrumentName</span></MudTd>
+                    <MudTd DataLabel="@UiText.CounterColumnValue">@counter.Value.ToString("N0", CultureInfo.InvariantCulture)</MudTd>
+                </RowTemplate>
+            </YaguraTable>
+        </YaguraCard>
+    </div>
+}
+
 <div class="mb-4">
     <YaguraCard Title="@UiText.OutageHistoryTitle">
         @if (_storageUnavailable)
@@ -146,6 +173,7 @@
     private const int HistoryLimit = 200;
 
     private IReadOnlyList<YaguraCounterReading> _counters = [];
+    private IReadOnlyList<YaguraCounterReading> _diagnosticCounters = [];
     private YaguraSpoolReading? _spool;
     private bool _spoolDegraded;
     private long? _storedRecords;
@@ -177,6 +205,7 @@
         ];
         _spool = status.Spool;
         _spoolDegraded = status.SpoolDegraded;
+        _diagnosticCounters = status.DiagnosticCounters ?? [];
 
         // 保存先由来の情報（蓄積件数・DB サイズ・履歴）は**個別に**縮退させる（Issue #500）。
         // ここで例外を通すと画面全体が落ちるが、上で読み終えたカウンタ・スプール・ゲージは
@@ -223,6 +252,8 @@
         "yagura.ingestion.internal_buffer.dropped" => UiText.CounterInternalBufferDropped,
         "yagura.ingestion.tcp_connection.rejected" => UiText.CounterTcpConnectionRejected,
         "yagura.ingestion.tcp_connection.faulted" => UiText.CounterTcpConnectionFaulted,
+        "yagura.ingestion.tcp.tls_handshake_failure" => UiText.CounterTlsHandshakeFailure,
+        "yagura.ingestion.udp.receive_error" => UiText.CounterUdpReceiveError,
         "yagura.ingestion.spool.evacuated" => UiText.CounterSpoolEvacuated,
         "yagura.ingestion.spool.write_failed" => UiText.CounterSpoolWriteFailed,
         "yagura.ingestion.spool.discarded" => UiText.CounterSpoolDiscarded,
